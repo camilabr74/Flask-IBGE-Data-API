@@ -1,5 +1,6 @@
 from connection_API import get
 from handle_files import save_json, load_json, clean_data
+import os
 
 if __name__ == "__main__":
     pais = ["BR"]
@@ -7,9 +8,13 @@ if __name__ == "__main__":
 
     data = get(pais, indicador)
     if data:
-        save_json(data, 'dados_brutos.json') 
 
-        dados_brutos = load_json('dados_brutos.json')
+        if not os.path.exists('json'):
+            os.makedirs('json')
+
+        save_json(data, 'json/dados_brutos.json') 
+
+        dados_brutos = load_json('json/dados_brutos.json')
 
         for item in dados_brutos:
             if "series" in item[0] and len(item[0]) > 0:
