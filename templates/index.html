@@ -26,17 +26,17 @@
             <div class="col-md-2">
                 <label for="countryDropdown">Selecione o país:</label>
                 <select class="form-control" id="countryDropdown">
-                    <option value="usa">USA</option>
-                    <option value="canada">Canada</option>
-                    <option value="uk">UK</option>
+                    {% for country in data['countries'] %}
+                    <option value="{{country['codigo']}}">{{country['nome']}}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-6">
                 <label for="indicatorDropdown">Selecione o indicador:</label>
                 <select class="form-control" id="indicatorDropdown">
-                    <option value="gdp">GDP</option>
-                    <option value="population">Population</option>
-                    <option value="inflation">Inflation</option>
+                    {% for indicator in data['indicators'] %}
+                    <option value="{{indicator['codigo']}}">{{indicator['descricao']}}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-4">
