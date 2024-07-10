@@ -5,8 +5,9 @@ def save_json(data, filename):
         json.dump(data, file, indent=4, ensure_ascii=False)
 
 def load_json(filename):
-    with open(filename, 'r') as file:
-        return json.load(file)
+    with open(filename, 'r', encoding='utf-8') as file:
+        data_json = json.load(file)
+        return data_json
     
 def clean_data(dataList):
     newList = []
