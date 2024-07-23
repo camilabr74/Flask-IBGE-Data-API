@@ -41,10 +41,39 @@
             </div>
             <div class="col-md-4">
                 <label>&nbsp;</label>
-                <button type="button" class="btn btn-secondary btn-block">Consultar</button>
+                <button type="button" class="btn btn-secondary btn-block" id="submitButton" onclick="sendGetRequest()">Consultar</button>
             </div>
         </div>
     </div>
+    <div id="dataContainer"></div>
+
+    <script>
+        function sendGetRequest() {
+            var countryDropdown = document.getElementById('countryDropdown');
+            var indicatorDropdown = document.getElementById('indicatorDropdown');
+            
+            var selectedCountry = countryDropdown.value;
+            var selectedIndicator = indicatorDropdown.value;
+            
+            var url = `https://servicodados.ibge.gov.br/api/v1/paises/${selectedCountry}/indicadores/${selectedIndicator}`;
+
+            console.log('Request URL:', url);
+
+            
+            // Send the GET request
+            fetch(url, {
+                method: 'GET',
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Handle the response data here
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
