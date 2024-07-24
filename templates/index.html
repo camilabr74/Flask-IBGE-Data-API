@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Indicators Hub</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <a class="navbar-brand" href="#">Global Indicators Hub</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -41,42 +44,117 @@
             </div>
             <div class="col-md-4">
                 <label>&nbsp;</label>
-                <button type="button" class="btn btn-secondary btn-block" id="submitButton" onclick="sendGetRequest()">Consultar</button>
+                <button type="button" class="btn btn-secondary btn-block" id="submitButton"
+                    onclick="sendGetRequest()">Consultar</button>
             </div>
         </div>
     </div>
-    <div id="dataContainer"></div>
+    <table id="dataTable">
+        <thead>
+            <tr>
+
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
 
     <script>
         function sendGetRequest() {
             var countryDropdown = document.getElementById('countryDropdown');
             var indicatorDropdown = document.getElementById('indicatorDropdown');
-            
+
             var selectedCountry = countryDropdown.value;
             var selectedIndicator = indicatorDropdown.value;
-            
+
             var url = `https://servicodados.ibge.gov.br/api/v1/paises/${selectedCountry}/indicadores/${selectedIndicator}`;
 
             console.log('Request URL:', url);
 
-            
-            // Send the GET request
             fetch(url, {
                 method: 'GET',
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                // Handle the response data here
-            })
-            .catch(error => {
-                console.error('Error:', error);
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received data:', data);
+
+                    if (data.length > 0 && data[0].series && Array.isArray(data[0].series) && data[0].series.length > 0) {
+                        var series = Array.isArray(data[0].series[0].serie) ? data[0].series[0].serie : [];
+                        console.log('Series data:', series);
+                        var cleanedData = cleanData(series);
+                        console.log('Cleaned data:', cleanedData);
+                        displayData(cleanedData);
+                    } else {
+                        console.log('No series data available');
+                        displayData([]);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function cleanData(dataList) {
+            return dataList.filter(item => {
+                console.log('Item before cleaning:', item);
+                return Object.values(item).some(value => value !== null && value !== '');
+            }).map(item => {
+                let key = Object.keys(item)[0];
+                let value = item[key];
+                return { year: key, value: value };
             });
         }
+
+        function displayData(data) {
+            var tableHeader = document.querySelector('#dataTable thead tr');
+            var tableBody = document.querySelector('#dataTable tbody');
+
+            tableHeader.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (data.length > 0) {
+                var headers = ['Year', 'Value'];
+                headers.forEach(header => {
+                    var th = document.createElement('th');
+                    th.textContent = header;
+                    tableHeader.appendChild(th);
+                });
+
+                data.forEach(item => {
+                    var tr = document.createElement('tr');
+                    var tdYear = document.createElement('td');
+                    tdYear.textContent = item.year !== null ? item.year : '';
+                    tr.appendChild(tdYear);
+
+                    var tdValue = document.createElement('td');
+                    tdValue.textContent = item.value !== null ? item.value : '';
+                    tr.appendChild(tdValue);
+
+                    tableBody.appendChild(tr);
+                });
+
+            } else {
+                var tr = document.createElement('tr');
+                var td = document.createElement('td');
+                td.colSpan = 2;
+                td.textContent = 'No data available';
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
+            }
+        }
+
     </script>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
+
 </html>
