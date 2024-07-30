@@ -47,9 +47,16 @@
                 <button type="button" class="btn btn-secondary btn-block" id="submitButton"
                     onclick="sendGetRequest()">Consultar</button>
             </div>
+
+            <h5 id="dataTitle" class="text-primary font-weight-bold mt-3 mb-2"></h5> <!-- Título dos dados -->
         </div>
+        <p id="dataDescription" class="text-secondary mt-2 mb-4"></p>
+
     </div>
-    <table id="dataTable">
+
+
+
+    <table id="dataTable" class="table table-bordered mt-2 w-25 mx-auto">
         <thead>
             <tr>
 
@@ -85,15 +92,28 @@
                 .then(data => {
                     console.log('Received data:', data);
 
-                    if (data.length > 0 && data[0].series && Array.isArray(data[0].series) && data[0].series.length > 0) {
-                        var series = Array.isArray(data[0].series[0].serie) ? data[0].series[0].serie : [];
-                        console.log('Series data:', series);
-                        var cleanedData = cleanData(series);
-                        console.log('Cleaned data:', cleanedData);
-                        displayData(cleanedData);
-                    } else {
-                        console.log('No series data available');
-                        displayData([]);
+                    // Extrair e exibir informações da unidade
+                    if (data.length > 0) {
+                        var indicatorInfo = data[0];
+                        var unit = indicatorInfo.unidade;
+
+                        // Atualizar título e descrição
+                        var title = `Indicador: ${indicatorInfo.indicador}`;
+                        var description = `Unidade: ${unit.id}, Classe: ${unit.classe}, Multiplicador: ${unit.multiplicador}`;
+
+                        document.getElementById('dataTitle').textContent = title;
+                        document.getElementById('dataDescription').textContent = description;
+
+                        // Limpar e exibir os dados
+                        if (indicatorInfo.series.length > 0 && Array.isArray(indicatorInfo.series[0].serie)) {
+                            var series = indicatorInfo.series[0].serie;
+                            var cleanedData = cleanData(series);
+                            console.log('Cleaned data:', cleanedData);
+                            displayData(cleanedData);
+                        } else {
+                            console.log('No series data available');
+                            displayData([]);
+                        }
                     }
                 })
                 .catch(error => {
