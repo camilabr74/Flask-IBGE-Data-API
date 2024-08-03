@@ -21,36 +21,68 @@ function sendGetRequest() {
         .then(data => {
             console.log('Received data:', data);
 
-            // Extrair e exibir informações da unidade
-            if (data.length > 0) {
+            // Verificar e processar os dados
+            if (data && Array.isArray(data) && data.length > 0) {
                 var indicatorInfo = data[0];
-                var unit = indicatorInfo.unidade;
 
-                // Atualizar título e descrição
-                var title = `Indicador: ${indicatorInfo.indicador}`;
-                var description = `Unidade: ${unit.id}, Classe: ${unit.classe}, Multiplicador: ${unit.multiplicador}`;
+                // Extrair e exibir informações da unidade
+                if (indicatorInfo && indicatorInfo.unidade) {
+                    var unit = indicatorInfo.unidade;
+                    var title = `Indicador: ${indicatorInfo.indicador}`;
+                    var description = `Unidade: ${unit.id}, Classe: ${unit.classe}, Multiplicador: ${unit.multiplicador}`;
 
-                document.getElementById('dataTitle').textContent = title;
-                document.getElementById('dataDescription').textContent = description;
+                    document.getElementById('dataTitle').textContent = title;
+                    document.getElementById('dataDescription').textContent = description;
+                }
 
                 // Limpar e exibir os dados
-                if (indicatorInfo.series.length > 0 && Array.isArray(indicatorInfo.series[0].serie)) {
+                if (indicatorInfo && Array.isArray(indicatorInfo.series) && indicatorInfo.series.length > 0) {
                     var series = indicatorInfo.series[0].serie;
-                    var cleanedData = cleanData(series);
-                    console.log('Cleaned data:', cleanedData);
-                    displayData(cleanedData);
+
+                    if (Array.isArray(series)) {
+                        var cleanedData = cleanData(series);
+                        console.log('Cleaned data:', cleanedData);
+                        displayData(cleanedData);
+                        renderChart(cleanedData);
+                    } else {
+                        console.error('Series data is not an array:', series);
+                        document.getElementById('dataTitle').textContent = '';
+                        document.getElementById('dataDescription').textContent = '';
+                        displayData([]);
+                        renderChart([]);
+                    }
                 } else {
-                    console.log('No series data available');
+                    console.error('IndicatorInfo series is not an array or empty:', indicatorInfo.series);
+                    document.getElementById('dataTitle').textContent = '';
+                    document.getElementById('dataDescription').textContent = '';
                     displayData([]);
+                    renderChart([]);
                 }
+            } else {
+                console.error('Data is not an array or empty:', data);
+                document.getElementById('dataTitle').textContent = '';
+                document.getElementById('dataDescription').textContent = '';
+                displayData([]);
+                renderChart([]);
             }
         })
         .catch(error => {
             console.error('Error:', error);
+            document.getElementById('dataTitle').textContent = '';
+            document.getElementById('dataDescription').textContent = '';
+            displayData([]);
+            renderChart([]);
         });
 }
 
+
 function cleanData(dataList) {
+    console.log('DataList:', dataList);
+    if (!Array.isArray(dataList)) {
+        console.error('DataList is not an array:', dataList);
+        return [];
+    }
+
     return dataList.filter(item => {
         console.log('Item before cleaning:', item);
         return Object.values(item).some(value => value !== null && value !== '');
@@ -97,4 +129,60 @@ function displayData(data) {
         tr.appendChild(td);
         tableBody.appendChild(tr);
     }
+}
+
+
+function renderChart(data) {
+    var ctx = document.getElementById('myChart').getContext('2d');
+
+    // Se já existir um gráfico, destrua-o antes de criar um novo
+    if (window.myChart && window.myChart instanceof Chart) {
+        window.myChart.destroy();
+    }
+
+    // Verifique o tipo de data
+    console.log('Data type:', typeof data);
+    console.log('Data:', data);
+
+    if (!Array.isArray(data)) {
+        console.error('Data is not an array.');
+        return;
+    }
+
+    var labels = data.map(item => item.year);
+    var values = data.map(item => parseFloat(item.value)); // Converter valores para números
+
+    console.log('Labels:', labels);
+    console.log('Values:', values);
+
+    window.myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Indicador',
+                data: values,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                fill: false
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Value'
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }
