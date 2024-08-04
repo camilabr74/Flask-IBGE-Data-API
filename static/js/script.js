@@ -126,7 +126,7 @@ function displayData(data, unitDescription) {
         var tr = document.createElement('tr');
         var td = document.createElement('td');
         td.colSpan = 2;
-        td.textContent = 'No data available';
+        td.textContent = 'Sem dados para exibir';
         tr.appendChild(td);
         tableBody.appendChild(tr);
     }
