@@ -29,6 +29,7 @@ function sendGetRequest() {
                 if (indicatorInfo && indicatorInfo.unidade) {
                     var unit = indicatorInfo.unidade;
                     var title = `Indicador: ${indicatorInfo.indicador}`;
+                    var unitDescription = `${unit.id}`;
                     var description = `Unidade: ${unit.id}, Classe: ${unit.classe}, Multiplicador: ${unit.multiplicador}`;
 
                     document.getElementById('dataTitle').textContent = title;
@@ -42,36 +43,36 @@ function sendGetRequest() {
                     if (Array.isArray(series)) {
                         var cleanedData = cleanData(series);
                         console.log('Cleaned data:', cleanedData);
-                        displayData(cleanedData);
-                        renderChart(cleanedData);
+                        displayData(cleanedData, unitDescription);
+                        renderChart(cleanedData, unitDescription);
                     } else {
                         console.error('Series data is not an array:', series);
                         document.getElementById('dataTitle').textContent = '';
                         document.getElementById('dataDescription').textContent = '';
-                        displayData([]);
-                        renderChart([]);
+                        displayData([], unitDescription);
+                        renderChart([], unitDescription);
                     }
                 } else {
                     console.error('IndicatorInfo series is not an array or empty:', indicatorInfo.series);
                     document.getElementById('dataTitle').textContent = '';
                     document.getElementById('dataDescription').textContent = '';
-                    displayData([]);
-                    renderChart([]);
+                    displayData([], unitDescription);
+                    renderChart([], unitDescription);
                 }
             } else {
                 console.error('Data is not an array or empty:', data);
                 document.getElementById('dataTitle').textContent = '';
                 document.getElementById('dataDescription').textContent = '';
-                displayData([]);
-                renderChart([]);
+                displayData([], '');
+                renderChart([], '');
             }
         })
         .catch(error => {
             console.error('Error:', error);
             document.getElementById('dataTitle').textContent = '';
             document.getElementById('dataDescription').textContent = '';
-            displayData([]);
-            renderChart([]);
+            displayData([], '');
+            renderChart([], '');
         });
 }
 
@@ -93,7 +94,7 @@ function cleanData(dataList) {
     });
 }
 
-function displayData(data) {
+function displayData(data, unitDescription) {
     var tableHeader = document.querySelector('#dataTable thead tr');
     var tableBody = document.querySelector('#dataTable tbody');
 
@@ -101,7 +102,7 @@ function displayData(data) {
     tableBody.innerHTML = '';
 
     if (data.length > 0) {
-        var headers = ['Year', 'Value'];
+        var headers = ['Ano', unitDescription];
         headers.forEach(header => {
             var th = document.createElement('th');
             th.textContent = header;
@@ -132,7 +133,7 @@ function displayData(data) {
 }
 
 
-function renderChart(data) {
+function renderChart(data, unitDescription) {
     var ctx = document.getElementById('myChart').getContext('2d');
 
     // Se já existir um gráfico, destrua-o antes de criar um novo
@@ -160,7 +161,7 @@ function renderChart(data) {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Indicador',
+                label: `${unitDescription}`,
                 data: values,
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1,
@@ -172,13 +173,13 @@ function renderChart(data) {
                 x: {
                     title: {
                         display: true,
-                        text: 'Year'
+                        text: 'Ano'
                     }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Value'
+                        text: `${unitDescription}`
                     },
                     beginAtZero: true
                 }
