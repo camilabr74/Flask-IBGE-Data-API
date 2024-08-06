@@ -49,26 +49,59 @@
     </div>
 
     <div class="container mt-2 text-center">
-        <div class="row">
-            <table id="dataTable" class="table table-sm table-bordered mt-2 w-25">
-                <thead class="thead-light">
-                    <tr>
+        <div class="desktop-view row">
+            <div class="col-md-3">
+                <table id="dataTable" class="table table-sm table-bordered mt-2">
+                    <thead class="thead-light">
+                        <tr>
+                            <!-- Headers from API -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data from API -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-9">
+                <div id="chartContainer" class="mt-2">
+                    <canvas id="myChart" width="200" height="100"></canvas>
+                </div>
+            </div>
+        </div>
 
-                    </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-            </table>
-
-            <div id="chartContainer" class="mt-2 w-75">
-                <canvas id="myChart" width="200" height="100"></canvas>
+        <div class="mobile-view">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-toggle="tab" href="#table" role="tab" aria-controls="table" aria-selected="true">Tabela</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="tab" href="#chart" role="tab" aria-controls="chart" aria-selected="false">Gráfico</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="table" role="tabpanel" aria-labelledby="table-tab">
+                    <table id="dataTableMobile" class="table table-bordered mt-2">
+                        <thead class="thead-light">
+                            <tr>
+                                <!-- Headers from API -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data from API -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="chart" role="tabpanel" aria-labelledby="chart-tab">
+                    <div class="mt-2">
+                        <canvas id="myChartMobile" width="200" height="100"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 
