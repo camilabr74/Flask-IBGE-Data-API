@@ -90,14 +90,13 @@ function cleanData(dataList) {
     return dataList
         .filter(item => {
             console.log('Item before cleaning:', item);
-
-            return Object.values(item).some(value => value !== null && value !== '');
+            return item && Object.values(item).some(value => value !== null && value !== '' && !isNaN(value));
         })
         .map(item => {
             const key = Object.keys(item)[0];
-            const value = item[key];
-            console.log('Cleaned item:', { year: key, value: value });
-            return { year: key, value: value };
+            const value = parseFloat(item[key]);
+            console.log('Cleaned item:', { year: key, value: isNaN(value) ? '' : value });
+            return { year: key, value: isNaN(value) ? '' : value };
         });
 }
 
