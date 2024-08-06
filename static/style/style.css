@@ -19,3 +19,29 @@ body {
 .table tbody tr:hover {
     background-color: #f1f1f1;
 }
+
+@media (max-width: 768px) {
+    .desktop-view {
+        display: none;
+    }
+
+    .mobile-view {
+        display: block;
+    }
+
+    .mobile-view #myChart {
+        width: 100% !important;
+        height: 1000px !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .desktop-view {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .mobile-view {
+        display: none;
+    }
+}
