@@ -1,147 +1,160 @@
-function sendGetRequest() {
-    var countryDropdown = document.getElementById('countryDropdown');
-    var indicatorDropdown = document.getElementById('indicatorDropdown');
+async function sendGetRequest() {
+    const countryDropdown = document.getElementById('countryDropdown');
+    const indicatorDropdown = document.getElementById('indicatorDropdown');
 
-    var selectedCountry = countryDropdown.value;
-    var selectedIndicator = indicatorDropdown.value;
+    const selectedCountry = countryDropdown.value;
+    const selectedIndicator = indicatorDropdown.value;
 
-    var url = `https://servicodados.ibge.gov.br/api/v1/paises/${selectedCountry}/indicadores/${selectedIndicator}`;
+    const url = `https://servicodados.ibge.gov.br/api/v1/paises/${selectedCountry}/indicadores/${selectedIndicator}`;
 
     console.log('Request URL:', url);
 
-    fetch(url, {
-        method: 'GET',
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Received data:', data);
+    try {
+        const response = await fetch(url, { method: 'GET' });
 
-            // Verificar e processar os dados
-            if (data && Array.isArray(data) && data.length > 0) {
-                var indicatorInfo = data[0];
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
 
-                // Extrair e exibir informações da unidade
-                if (indicatorInfo && indicatorInfo.unidade) {
-                    var unit = indicatorInfo.unidade;
-                    var title = `Indicador: ${indicatorInfo.indicador}`;
-                    var unitDescription = `${unit.id}`;
-                    var description = `Unidade: ${unit.id}, Classe: ${unit.classe}, Multiplicador: ${unit.multiplicador}`;
+        const data = await response.json();
+        console.log('Received data:', data);
 
-                    document.getElementById('dataTitle').textContent = title;
-                    document.getElementById('dataDescription').textContent = description;
-                }
+        if (data && Array.isArray(data) && data.length > 0) {
+            const indicatorInfo = data[0];
 
-                // Limpar e exibir os dados
-                if (indicatorInfo && Array.isArray(indicatorInfo.series) && indicatorInfo.series.length > 0) {
-                    var series = indicatorInfo.series[0].serie;
+            if (indicatorInfo && indicatorInfo.unidade) {
+                const unit = indicatorInfo.unidade;
+                const title = `Indicador: ${indicatorInfo.indicador}`;
+                const unitDescription = `${unit.id}`;
 
+                updateUI(title, `Unidade: ${unit.id}, Classe: ${unit.classe}, Multiplicador: ${unit.multiplicador}`);
+
+                if (Array.isArray(indicatorInfo.series) && indicatorInfo.series.length > 0) {
+                    const series = indicatorInfo.series[0].serie;
                     if (Array.isArray(series)) {
-                        var cleanedData = cleanData(series);
+                        const cleanedData = cleanData(series);
                         console.log('Cleaned data:', cleanedData);
-                        displayData(cleanedData, unitDescription);
-                        renderChart(cleanedData, unitDescription);
+                        displayAndRenderData(cleanedData, unitDescription);
                     } else {
-                        console.error('Series data is not an array:', series);
-                        document.getElementById('dataTitle').textContent = '';
-                        document.getElementById('dataDescription').textContent = '';
-                        displayData([], unitDescription);
-                        renderChart([], unitDescription);
+                        handleError('Series data is not an array:', series);
                     }
                 } else {
-                    console.error('IndicatorInfo series is not an array or empty:', indicatorInfo.series);
-                    document.getElementById('dataTitle').textContent = '';
-                    document.getElementById('dataDescription').textContent = '';
-                    displayData([], unitDescription);
-                    renderChart([], unitDescription);
+                    handleError('IndicatorInfo series is not an array or empty:', indicatorInfo.series);
                 }
             } else {
-                console.error('Data is not an array or empty:', data);
-                document.getElementById('dataTitle').textContent = '';
-                document.getElementById('dataDescription').textContent = '';
-                displayData([], '');
-                renderChart([], '');
+                handleError('No valid unit information in indicatorInfo');
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('dataTitle').textContent = '';
-            document.getElementById('dataDescription').textContent = '';
-            displayData([], '');
-            renderChart([], '');
-        });
+        } else {
+            handleError('Data is not an array or empty:', data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        handleError('An error occurred while fetching data');
+    }
 }
 
+function updateUI(title, description) {
+    document.getElementById('dataTitle').textContent = title;
+    document.getElementById('dataDescription').textContent = description;
+}
+
+function clearUI() {
+    document.getElementById('dataTitle').textContent = '';
+    document.getElementById('dataDescription').textContent = '';
+    displayData([], '', 'dataTable');
+    displayData([], '', 'dataTableMobile');
+    renderChart([], '', 'myChart');
+    renderChart([], '', 'myChartMobile');
+}
+
+function handleError(message, data = '') {
+    console.error(message, data);
+    clearUI();
+}
+
+function displayAndRenderData(data, unitDescription) {
+    displayData(data, unitDescription, 'dataTable');
+    displayData(data, unitDescription, 'dataTableMobile');
+    renderChart(data, unitDescription, 'myChart');
+    renderChart(data, unitDescription, 'myChartMobile');
+}
 
 function cleanData(dataList) {
     console.log('DataList:', dataList);
+
     if (!Array.isArray(dataList)) {
         console.error('DataList is not an array:', dataList);
         return [];
     }
 
-    return dataList.filter(item => {
-        console.log('Item before cleaning:', item);
-        return Object.values(item).some(value => value !== null && value !== '');
-    }).map(item => {
-        let key = Object.keys(item)[0];
-        let value = item[key];
-        return { year: key, value: value };
-    });
+    return dataList
+        .filter(item => {
+            console.log('Item before cleaning:', item);
+
+            return Object.values(item).some(value => value !== null && value !== '');
+        })
+        .map(item => {
+            const key = Object.keys(item)[0];
+            const value = item[key];
+            console.log('Cleaned item:', { year: key, value: value });
+            return { year: key, value: value };
+        });
 }
 
-function displayData(data, unitDescription) {
-    var tableHeader = document.querySelector('#dataTable thead tr');
-    var tableBody = document.querySelector('#dataTable tbody');
+function displayData(data, unitDescription, tableId) {
+    const tableHeader = document.querySelector(`#${tableId} thead tr`);
+    const tableBody = document.querySelector(`#${tableId} tbody`);
 
     tableHeader.innerHTML = '';
     tableBody.innerHTML = '';
 
     if (data.length > 0) {
-        var headers = ['Ano', unitDescription];
+        const headers = ['Ano', unitDescription];
+        const headerFragment = document.createDocumentFragment();
         headers.forEach(header => {
-            var th = document.createElement('th');
+            const th = document.createElement('th');
             th.textContent = header;
-            tableHeader.appendChild(th);
+            headerFragment.appendChild(th);
         });
+        tableHeader.appendChild(headerFragment);
 
+        const bodyFragment = document.createDocumentFragment();
         data.forEach(item => {
-            var tr = document.createElement('tr');
-            var tdYear = document.createElement('td');
+            const tr = document.createElement('tr');
+
+            const tdYear = document.createElement('td');
             tdYear.textContent = item.year !== null ? item.year : '';
             tr.appendChild(tdYear);
 
-            var tdValue = document.createElement('td');
+            const tdValue = document.createElement('td');
             tdValue.textContent = item.value !== null ? item.value : '';
             tr.appendChild(tdValue);
 
-            tableBody.appendChild(tr);
+            bodyFragment.appendChild(tr);
         });
-
+        tableBody.appendChild(bodyFragment);
     } else {
-        var tr = document.createElement('tr');
-        var td = document.createElement('td');
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
         td.colSpan = 2;
-        td.textContent = 'Sem dados para exibir';
+        td.textContent = 'Não há dados para exibir';
         tr.appendChild(td);
         tableBody.appendChild(tr);
     }
 }
 
+function renderChart(data, unitDescription, chartId) {
+    const ctx = document.getElementById(chartId)?.getContext('2d');
 
-function renderChart(data, unitDescription) {
-    var ctx = document.getElementById('myChart').getContext('2d');
-
-    // Se já existir um gráfico, destrua-o antes de criar um novo
-    if (window.myChart && window.myChart instanceof Chart) {
-        window.myChart.destroy();
+    if (!ctx) {
+        console.error(`Canvas context not found for chartId: ${chartId}`);
+        return;
     }
 
-    // Verifique o tipo de data
+    if (window[chartId] && window[chartId] instanceof Chart) {
+        window[chartId].destroy();
+    }
+
     console.log('Data type:', typeof data);
     console.log('Data:', data);
 
@@ -150,18 +163,18 @@ function renderChart(data, unitDescription) {
         return;
     }
 
-    var labels = data.map(item => item.year);
-    var values = data.map(item => parseFloat(item.value)); // Converter valores para números
+    const labels = data.map(item => item.year);
+    const values = data.map(item => parseFloat(item.value) || 0);
 
     console.log('Labels:', labels);
     console.log('Values:', values);
 
-    window.myChart = new Chart(ctx, {
+    window[chartId] = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
-                label: `${unitDescription}`,
+                label: unitDescription,
                 data: values,
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1,
@@ -179,7 +192,7 @@ function renderChart(data, unitDescription) {
                 y: {
                     title: {
                         display: true,
-                        text: `${unitDescription}`
+                        text: unitDescription
                     },
                     beginAtZero: true
                 }
