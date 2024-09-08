@@ -1,3 +1,20 @@
+function initializePage() {
+    const countryDropdown = document.getElementById('countryDropdown');
+    const indicatorDropdown = document.getElementById('indicatorDropdown');
+
+    if (countryDropdown.options.length > 0) {
+        countryDropdown.value = countryDropdown.options[25].value;
+    }
+    if (indicatorDropdown.options.length > 0) {
+        indicatorDropdown.value = indicatorDropdown.options[1].value;
+    }
+
+    sendGetRequest();
+}
+
+window.onload = initializePage;
+
+
 async function sendGetRequest() {
     const countryDropdown = document.getElementById('countryDropdown');
     const indicatorDropdown = document.getElementById('indicatorDropdown');
