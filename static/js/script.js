@@ -1,3 +1,20 @@
+function initializePage() {
+    const countryDropdown = document.getElementById('countryDropdown');
+    const indicatorDropdown = document.getElementById('indicatorDropdown');
+
+    if (countryDropdown.options.length > 0) {
+        countryDropdown.value = countryDropdown.options[25].value;
+    }
+    if (indicatorDropdown.options.length > 0) {
+        indicatorDropdown.value = indicatorDropdown.options[1].value;
+    }
+
+    sendGetRequest();
+}
+
+window.onload = initializePage;
+
+
 async function sendGetRequest() {
     const countryDropdown = document.getElementById('countryDropdown');
     const indicatorDropdown = document.getElementById('indicatorDropdown');
@@ -27,7 +44,7 @@ async function sendGetRequest() {
                 const title = `Indicador: ${indicatorInfo.indicador}`;
                 const unitDescription = `${unit.id}`;
 
-                updateUI(title, `Unidade: ${unit.id}, Classe: ${unit.classe}, Multiplicador: ${unit.multiplicador}`);
+                updateUI(title);
 
                 if (Array.isArray(indicatorInfo.series) && indicatorInfo.series.length > 0) {
                     const series = indicatorInfo.series[0].serie;
@@ -89,14 +106,15 @@ function cleanData(dataList) {
 
     return dataList
         .filter(item => {
-            console.log('Item before cleaning:', item);
-            return item && Object.values(item).some(value => value !== null && value !== '' && !isNaN(value));
+            const key = Object.keys(item)[0];
+            const value = parseFloat(item[key]);
+            return key && !isNaN(value);
         })
         .map(item => {
             const key = Object.keys(item)[0];
             const value = parseFloat(item[key]);
             console.log('Cleaned item:', { year: key, value: isNaN(value) ? '' : value });
-            return { year: key, value: isNaN(value) ? '' : value };
+            return { year: key, value: value };
         });
 }
 
